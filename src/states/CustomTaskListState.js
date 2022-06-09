@@ -1,24 +1,38 @@
-const ACTION_DISMISS_BAR = 'DISMISS_BAR';
+const UPDATE_LAST_MESSAGE = "UPDATE_LAST_MESSAGE";
+const GET_LAST_MESSAGE ="GET_LAST_MESSAGE";
 
 const initialState = {
-  isOpen: true,
+  lastMessage: 0,
 };
 
 export class Actions {
-  static dismissBar = () => ({ type: ACTION_DISMISS_BAR });
+
+  static updateLastMessage = (selectedValues) => ({
+    type: UPDATE_LAST_MESSAGE,
+    payload: selectedValues,
+  });
+
+  static getLastMessage = () => ({
+    type: GET_LAST_MESSAGE
+  })
+
 }
 
 export function reduce(state = initialState, action) {
   // eslint-disable-next-line sonarjs/no-small-switch
   switch (action.type) {
-    case ACTION_DISMISS_BAR: {
+    case UPDATE_LAST_MESSAGE: {
       return {
         ...state,
-        isOpen: false,
+        lastMessage: action.payload,
       };
+    }
+    case GET_LAST_MESSAGE: {
+      return state.lastMessage;
     }
 
     default:
       return state;
   }
 }
+

@@ -5,11 +5,11 @@ import { Actions } from '../../states/CustomTaskListState';
 import CustomTaskList from './CustomTaskList';
 
 const mapStateToProps = (state) => ({
-  isOpen: state['inactivity'].customTaskList.isOpen,
+  lastMessage: state['inactivity'].customTaskList.lastMessage,
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  dismissBar: bindActionCreators(Actions.dismissBar, dispatch),
+  updateLastMessage: bindActionCreators(Actions.updateLastMessage, dispatch)
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(CustomTaskList);
