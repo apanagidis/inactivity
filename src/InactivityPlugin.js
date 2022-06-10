@@ -4,9 +4,9 @@ import * as Flex from '@twilio/flex-ui'
 import { FlexPlugin } from '@twilio/flex-plugin';
 import { ChatChannelHelper, StateHelper } from "@twilio/flex-ui";
 import { localStorageGet,localStorageSave } from './helpers/manager'
+import registerCustomNotifications from './notifications'
 
 const MAX_RUNNING_TIMERS = 3;
-
 
 import CustomTaskListContainer from './components/CustomTaskList/CustomTaskList.Container';
 import reducers, { namespace } from './states';
@@ -17,7 +17,6 @@ const PLUGIN_NAME = 'InactivityPlugin';
 export default class InactivityPlugin extends FlexPlugin {
   constructor() {
     super(PLUGIN_NAME);
-
   }
  
   /**
@@ -29,6 +28,8 @@ export default class InactivityPlugin extends FlexPlugin {
    */
   async init(flex, manager) {
     this.registerReducers(manager);
+    // Register the notification
+    registerCustomNotifications(flex, manager); 
 
     const options = { sortOrder: -1 };
 
@@ -44,13 +45,13 @@ export default class InactivityPlugin extends FlexPlugin {
 
       // Only refresh the timers if the last message was send by the customer
       if(chatMessage.configuration.userIdentity != chatMessage.state.author){
-        console.log("refreshing timer");
-        localStorageSave("last_message",(chatMessage.conversation.channelState.lastMessage.index).toString());
+        // localStorageSave("last_message",(chatMessage.conversation.channelState.lastMessage.index).toString());
+        localStorageSave("last_message",(chatMessage.state.dateUpdated));
+        // chatMessage.conversation.sid
         this.dispatch(Actions.updateLastMessage(localStorageGet("last_message")));
       }
     });
 
- 
   }
   dispatch = (f) => Flex.Manager.getInstance().store.dispatch(f);
 
