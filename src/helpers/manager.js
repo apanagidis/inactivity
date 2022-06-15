@@ -46,6 +46,7 @@ export function localStorageSave (key, value) {
 }
 
 
+
 /**
  * Remove element from local storage.
  * @param string key 

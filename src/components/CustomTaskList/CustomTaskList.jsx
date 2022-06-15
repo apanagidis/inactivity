@@ -3,6 +3,9 @@ import { Notifications } from '@twilio/flex-ui';
 import { CustomNotifications } from '../../notifications';
 import { localStorageGet } from '../../helpers/manager'
 import { useEffect, useState } from "react";
+import { Actions } from "@twilio/flex-ui";
+import { Actions as StateActions} from '../../states/CustomTaskListState';
+import { TaskHelper } from "@twilio/flex-ui";
 
 
 const CustomTaskList = (props) => {
@@ -15,10 +18,14 @@ const CustomTaskList = (props) => {
 
 // Executed when the component is loaded
  useEffect(() => {
-  let lastMessageDate = new Date(localStorageGet("last_message").slice(1,-1));
-  let remainingTime = getRemainingTimeSeconds(lastMessageDate);
-  if(remainingTime && remainingTime > 0){
-    updateRemainingTime(Math.round(remainingTime));
+
+  let lastMessage = localStorageGet("last_message");
+  if(lastMessage){
+    let lastMessageDate = new Date(lastMessage.slice(1,-1));
+    let remainingTime = getRemainingTimeSeconds(lastMessageDate);
+    if(remainingTime && remainingTime > 0){
+      updateRemainingTime(Math.round(remainingTime));
+    }
   }
 }, []);
 
@@ -39,6 +46,26 @@ const CustomTaskList = (props) => {
     setSeconds(timerSec);
   }
 
+  function wrapUp(){
+    // Check if the task is alrady in Wrap UP mode. If alrady in wrap up mode, do not trigger the notifcation
+    triggerNotification();
+    // Chec completion
+    Actions.invokeAction("WrapupTask", { sid: props.WRsid });
+    // removeChatFromLocalStorageAndRedux(channelSID);
+  }
+
+  // function removeChatFromLocalStorageAndRedux(channelSID){
+  //   let activeChats = localStorageGet("last_message");
+  //   if(activeChats){
+  //     var foundIndex = activeChats.findIndex(x => x.id == channelSID);
+  //     if(foundIndex != -1){
+  //       activeChats.splice(indexOfObject, foundIndex);
+  //       localStorageSave("last_message",activeChats);
+  //       this.dispatch(StateActions.updateLastMessage(activeChats));
+  //     }
+  //   }
+  // }
+
   function updateRemainingTime(remainingTimeSeconds) {
     setSeconds(remainingTimeSeconds);
   }
@@ -50,11 +77,13 @@ const CustomTaskList = (props) => {
   useEffect(() => {
     let interval = null;
     if (isActive && seconds > 0 ) {
+    
+
       interval = setInterval(() => {
         setSeconds(seconds => seconds - 1);
       }, 1000);
     } else if (seconds === 0) {
-      triggerNotification();
+      wrapUp();
       clearInterval(interval);
     }
     
@@ -64,10 +93,7 @@ const CustomTaskList = (props) => {
 
   return (
     <div>
-      <div> 
-        Test {props.lastMessage}
-      </div>
-
+    
       <div className="time">
         {seconds}s
       </div>

@@ -2,15 +2,14 @@ import React from 'react';
 import { VERSION } from '@twilio/flex-ui';
 import * as Flex from '@twilio/flex-ui'
 import { FlexPlugin } from '@twilio/flex-plugin';
-import { ChatChannelHelper, StateHelper } from "@twilio/flex-ui";
 import { localStorageGet,localStorageSave } from './helpers/manager'
 import registerCustomNotifications from './notifications'
-
-const MAX_RUNNING_TIMERS = 3;
 
 import CustomTaskListContainer from './components/CustomTaskList/CustomTaskList.Container';
 import reducers, { namespace } from './states';
 import { Actions } from './states/CustomTaskListState';
+import { TaskHelper } from "@twilio/flex-ui";
+
 
 const PLUGIN_NAME = 'InactivityPlugin';
 
@@ -18,7 +17,10 @@ export default class InactivityPlugin extends FlexPlugin {
   constructor() {
     super(PLUGIN_NAME);
   }
- 
+
+  onClearArray = () => {
+    this.setState({ activeChats: [] });
+  }
   /**
    * This code is run when your plugin is being started
    * Use this to modify any UI components or attach to the actions framework
@@ -30,25 +32,70 @@ export default class InactivityPlugin extends FlexPlugin {
     this.registerReducers(manager);
     // Register the notification
     registerCustomNotifications(flex, manager); 
-
     const options = { sortOrder: -1 };
 
-    flex.AgentDesktopView.Panel1.Content.add(
-    <CustomTaskListContainer key="TestPlugin-component"
-    />
-    , options);
+    let activeChats = localStorageGet("last_message");
+    if(activeChats){
+      console.log("active Chat", activeChats)
+     this.dispatch(Actions.updateLastMessage(activeChats));
+    }
 
-    this.dispatch(Actions.updateLastMessage(localStorageGet("last_message")));
+    Flex.Manager.getInstance().workerClient.on("reservationCreated", reservation => {
+      console.log("new chat",reservation);
 
+      const options = { sortOrder: -1 };
+      flex.AgentDesktopView.Panel1.Content.add(
+        <CustomTaskListContainer WRsid={reservation.sid} key="TestPlugin-component"
+        />
+        , options);
+
+      
+    });
+
+    manager.chatClient.on("memberJoined", (chatMessage) => {
+      console.log("agent joined the chat", chatMessage);
+    });
+    
+    // Cant add component on after accept task
+    flex.Actions.addListener("afterAcceptTask", (payload) => {
+      console.log("afterAcceptTask", payload)
+      // const options = { sortOrder: -1 };
+      // flex.AgentDesktopView.Panel1.Content.add(
+      //   <CustomTaskListContainer WRsid={payload.sid} key="TestPlugin-component"
+      //   />
+      //   , options);
+
+     
+      });
+
+   
     manager.chatClient.on("messageAdded", (chatMessage) => {
       console.log("Inactivity plugin: messageAdded", chatMessage); 
+      console.log("store", Flex.Manager.getInstance().store.getState());
 
       // Only refresh the timers if the last message was send by the customer
       if(chatMessage.configuration.userIdentity != chatMessage.state.author){
-        // localStorageSave("last_message",(chatMessage.conversation.channelState.lastMessage.index).toString());
-        localStorageSave("last_message",(chatMessage.state.dateUpdated));
-        // chatMessage.conversation.sid
-        this.dispatch(Actions.updateLastMessage(localStorageGet("last_message")));
+        let lastMessage = {
+          id: chatMessage.conversation.sid,
+          dateUpdated:chatMessage.state.dateUpdated
+        }
+        let activeChats = localStorageGet("last_message");
+        if(activeChats){
+          var foundIndex = activeChats.findIndex(x => x.id == chatMessage.conversation.sid);
+          if(foundIndex != -1){
+            activeChats[foundIndex] = lastMessage;
+          }
+          else{
+            activeChats.push(lastMessage);
+          }
+          console.log("active chats", activeChats)
+          localStorageSave("last_message",activeChats);
+          this.dispatch(Actions.updateLastMessage(activeChats));
+        }
+        else{
+          localStorageSave("last_message",[lastMessage]);
+          this.dispatch(Actions.updateLastMessage([lastMessage]));
+        }
       }
     });
 
