@@ -5,7 +5,7 @@ import { Actions } from '../../states/CustomTaskListState';
 import CustomTaskList from './CustomTaskList';
 
 const mapStateToProps = (state) => ({
-  lastMessage: state['inactivity'].customTaskList.activeChats,
+  activeChats: state['inactivity'].customTaskList.activeChats,
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -12,12 +12,31 @@ const CustomTaskList = (props) => {
   const { REACT_APP_TIMER_SEC } = process.env;
   const timerSec = parseInt(REACT_APP_TIMER_SEC);
 
-  useEffect(() => {
+useEffect(() => {
+  let latestMessage = props?.conversation?.messages.slice(-1).pop();
+  console.log("new message",props?.conversation)
+  if(latestMessage && !latestMessage.isFromMe){
     reset();
- }, [props.lastMessage])
+  }
+}, [props?.conversation?.messages])
+
+useEffect(() => {
+  if(props?.task?.status === "accepted"){
+    setIsActive(true);
+  }
+  else{
+    setIsActive(false);
+  }
+}, [props?.task?.status])
 
 // Executed when the component is loaded
  useEffect(() => {
+  if(props.chatChannel)
+  {
+    console.log("props", props);
+  }
+  console.log("props", props);
+
 
   let lastMessage = localStorageGet("last_message");
   if(lastMessage){
@@ -30,7 +49,7 @@ const CustomTaskList = (props) => {
 }, []);
 
   const [seconds, setSeconds] = useState(timerSec);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(false);
 
   function toggle() {
     setIsActive(!isActive);
@@ -47,10 +66,10 @@ const CustomTaskList = (props) => {
   }
 
   function wrapUp(){
-    // Check if the task is alrady in Wrap UP mode. If alrady in wrap up mode, do not trigger the notifcation
-    triggerNotification();
-    // Chec completion
-    Actions.invokeAction("WrapupTask", { sid: props.WRsid });
+    if(props?.task?.status === "accepted"){
+      triggerNotification();
+      Actions.invokeAction("WrapupTask", { sid: props.task.sid });
+    }   
     // removeChatFromLocalStorageAndRedux(channelSID);
   }
 
@@ -82,7 +101,7 @@ const CustomTaskList = (props) => {
       interval = setInterval(() => {
         setSeconds(seconds => seconds - 1);
       }, 1000);
-    } else if (seconds === 0) {
+    } else if (isActive && seconds === 0) {
       wrapUp();
       clearInterval(interval);
     }
@@ -90,7 +109,9 @@ const CustomTaskList = (props) => {
     return () => clearInterval(interval);
   }, [isActive, seconds]);
 
-
+function showProps(){
+  console.log("props", props);
+}
   return (
     <div>
     
@@ -103,6 +124,9 @@ const CustomTaskList = (props) => {
         </button>
         <button className="button" onClick={reset}>
           Reset
+        </button>
+        <button className="button" onClick={showProps}>
+          Props
         </button>
       </div>
     </div>

@@ -12,7 +12,7 @@ function registerCustomNotifications(flex, manager) {
 	flex.Notifications.registerNotification({
 		id: CustomNotifications.InactiveNotification,
 		type: Flex.NotificationType.error,
-		content: "Channel moved to wrap up due to inactivity.",
+		content: "Chat moved to wrap up due to inactivity.",
 		timeout: 5000
 
 	});
