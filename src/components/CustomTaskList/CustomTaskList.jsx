@@ -11,46 +11,6 @@ const CustomTaskList = (props) => {
   const [seconds, setSeconds] = useState(timerSec);
   const [isActive, setIsActive] = useState(false);
 
-const useDidMountEffect = (func, deps) => {
-  const didMount = useRef(false);
-  useEffect(() => {
-      if (didMount.current) func();
-      else didMount.current = true;
-  }, deps);
-}
-
-// useDidMountEffect(() => {
-//   let latestMessage = props?.conversation?.messages.slice(-1).pop();
-//   if(latestMessage && !latestMessage.isFromMe){
-//     let activeChats = localStorageGet("activeChats");
-//     const channelSid = props?.task?.attributes?.conversationSid;
-//     let lastMessage = {
-//       channelSid: channelSid,
-//       lastUpdatedbyCustomer: latestMessage?.source?.timestamp,
-//       messageIndex : latestMessage?.index
-//     }
-//     if(activeChats){
-//       const findChannelSid = (element) => element.channelSid == channelSid;
-//       let foundIndex= activeChats.findIndex(findChannelSid);
-
-//       if(foundIndex != -1){
-//         //Only reset the timer when the message in props is newer than the one in localstorage
-//         if(latestMessage &&  latestMessage?.index > activeChats[foundIndex]?.messageIndex){
-//           reset();
-//         }
-//         activeChats[foundIndex] = lastMessage;
-//       }
-//       else{
-//         activeChats.push(lastMessage);
-//       }
-//       localStorageSave("activeChats",activeChats);
-//     }
-//     else{
-//       localStorageSave("activeChats",[lastMessage]);
-//     } 
-//   }
-  
-// }, [props?.conversation?.messages]);    
 
 useEffect(() => {
   let latestMessage = props?.conversation?.messages.slice(-1).pop();
@@ -63,9 +23,7 @@ useEffect(() => {
       messageIndex : latestMessage?.index
     }
     if(activeChats){
-      const findChannelSid = (element) => element.channelSid == channelSid;
-      let foundIndex= activeChats.findIndex(findChannelSid);
-
+      let foundIndex= activeChats.findIndex((element) => element.channelSid == channelSid);
       if(foundIndex != -1){
         //Only reset the timer when the message in props is newer than the one in localstorage
         if(latestMessage &&  latestMessage?.index > activeChats[foundIndex]?.messageIndex){
@@ -76,10 +34,13 @@ useEffect(() => {
       else{
         activeChats.push(lastMessage);
       }
-      localStorageSave("activeChats",activeChats);
+      if(props?.task?.status !== "wrapping")
+        localStorageSave("activeChats",activeChats);
+      
     }
     else{
-      localStorageSave("activeChats",[lastMessage]);
+      if(props?.task?.status !== "wrapping")
+        localStorageSave("activeChats",[lastMessage]);
     } 
   }
 }, [props?.conversation?.messages])
@@ -98,9 +59,7 @@ useEffect(() => {
   let activeChats = localStorageGet("activeChats");
   const channelSid = props?.task?.attributes?.conversationSid;
   if(activeChats){
-    const findChannelSid = (element) => element.channelSid == channelSid;
-    let foundIndex= activeChats.findIndex(findChannelSid);
-
+    let foundIndex= activeChats.findIndex((element) => element.channelSid == channelSid);
     if(foundIndex != -1){
       let activeChat = activeChats[foundIndex];
       let lastMessageDate = new Date(activeChat?.lastUpdatedbyCustomer);
@@ -110,6 +69,7 @@ useEffect(() => {
       }
     }
   }
+
 }, []);
 
   function toggle() {
@@ -126,25 +86,25 @@ useEffect(() => {
     setSeconds(timerSec);
   }
 
-  function wrapUp(){
+  function moveToWrapUp(){
     if(props?.task?.status === "accepted"){
       triggerNotification();
       Actions.invokeAction("WrapupTask", { sid: props.task.sid });
     }   
-    // removeChatFromLocalStorageAndRedux(channelSID);
+    clearChannelFromLocalStorage();
   }
 
-  // function removeChatFromLocalStorageAndRedux(channelSID){
-  //   let activeChats = localStorageGet("last_message");
-  //   if(activeChats){
-  //     var foundIndex = activeChats.findIndex(x => x.id == channelSID);
-  //     if(foundIndex != -1){
-  //       activeChats.splice(indexOfObject, foundIndex);
-  //       localStorageSave("last_message",activeChats);
-  //       this.dispatch(StateActions.updateLastMessage(activeChats));
-  //     }
-  //   }
-  // }
+  function clearChannelFromLocalStorage(){
+    let channelSid = props?.task?.attributes?.conversationSid
+    let activeChats = localStorageGet("activeChats");
+    if(activeChats){
+      var foundIndex = activeChats.findIndex((element) => element.channelSid == channelSid);
+      if(foundIndex != -1){
+        activeChats.splice(foundIndex, 1);
+        localStorageSave("activeChats",activeChats);
+      }
+    }
+  }
 
   function triggerNotification(){
     Notifications.showNotification(CustomNotifications.InactiveNotification,null);
@@ -157,7 +117,7 @@ useEffect(() => {
         setSeconds(seconds => seconds - 1);
       }, 1000);
     } else if (isActive && seconds === 0) {
-      wrapUp();
+      moveToWrapUp();
       clearInterval(interval);
     }
     return () => clearInterval(interval);
@@ -171,7 +131,7 @@ function showProps(){
       <div className="time">
         {seconds}s
       </div>
-      <div className="row">
+      {/* <div className="row">
         <button className={`button button-primary button-primary-${isActive ? 'active' : 'inactive'}`} onClick={toggle}>
           {isActive ? 'Pause' : 'Start'}
         </button>
@@ -181,7 +141,7 @@ function showProps(){
         <button className="button" onClick={showProps}>
           Props
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -42,6 +42,22 @@ export default class InactivityPlugin extends FlexPlugin {
         }
       ]
 
+      flex.Actions.replaceAction("WrapupTask", (payload, original) => {
+        if(payload.reason === "Completed manually from button"){
+          let channelSid = payload.task?.attributes?.conversationSid
+          let activeChats = localStorageGet("activeChats");
+          if(activeChats){
+            var foundIndex = activeChats.findIndex((element) => element.channelSid == channelSid);
+            if(foundIndex != -1){
+              activeChats.splice(foundIndex, 1);
+              localStorageSave("activeChats",activeChats);
+            }
+          }
+        }
+        console.log("wrapup payload",payload)
+        return original(payload);
+      });
+
   }
   dispatch = (f) => Flex.Manager.getInstance().store.dispatch(f);
 
