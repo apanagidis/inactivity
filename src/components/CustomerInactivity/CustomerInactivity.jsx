@@ -5,8 +5,9 @@ import { localStorageGet,localStorageSave } from '../../helpers/manager'
 import { useEffect,useRef, useState } from "react";
 import { Actions } from "@twilio/flex-ui";
 
+
 const CustomerInactivity = (props) => {
-  const { REACT_APP_TIMER_SEC,WARNING_SEC,WARNING_MESSAGE } = process.env;
+  const { REACT_APP_TIMER_SEC,REACT_APP_WARNING_SEC,REACT_APP_WARNING_MESSAGE } = process.env;
   const timerSec = parseInt(REACT_APP_TIMER_SEC);
   const [seconds, setSeconds] = useState(timerSec);
   const [isActive, setIsActive] = useState(false);
@@ -117,8 +118,11 @@ useEffect(() => {
         setSeconds(seconds => seconds - 1);
       }, 1000);
     }
-    else if (isActive && seconds === parseInt(WARNING_SEC)) {
-      console.log("Warning")
+   if (isActive && seconds === parseInt(REACT_APP_WARNING_SEC)) {
+      Actions.invokeAction('SendMessage', {
+        body: REACT_APP_WARNING_MESSAGE,
+        conversationSid: props?.task?.attributes?.conversationSid
+      });
     }
     else if (isActive && seconds === 0) {
       moveToWrapUp();
