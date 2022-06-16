@@ -5,8 +5,8 @@ import { localStorageGet,localStorageSave } from '../../helpers/manager'
 import { useEffect,useRef, useState } from "react";
 import { Actions } from "@twilio/flex-ui";
 
-const CustomTaskList = (props) => {
-  const { REACT_APP_TIMER_SEC } = process.env;
+const CustomerInactivity = (props) => {
+  const { REACT_APP_TIMER_SEC,WARNING_SEC,WARNING_MESSAGE } = process.env;
   const timerSec = parseInt(REACT_APP_TIMER_SEC);
   const [seconds, setSeconds] = useState(timerSec);
   const [isActive, setIsActive] = useState(false);
@@ -116,7 +116,11 @@ useEffect(() => {
       interval = setInterval(() => {
         setSeconds(seconds => seconds - 1);
       }, 1000);
-    } else if (isActive && seconds === 0) {
+    }
+    else if (isActive && seconds === parseInt(WARNING_SEC)) {
+      console.log("Warning")
+    }
+    else if (isActive && seconds === 0) {
       moveToWrapUp();
       clearInterval(interval);
     }
@@ -148,4 +152,4 @@ function showProps(){
 
 
 
-export default CustomTaskList;
+export default CustomerInactivity;

@@ -5,10 +5,9 @@ import { FlexPlugin } from '@twilio/flex-plugin';
 import { localStorageGet,localStorageSave } from './helpers/manager'
 import registerCustomNotifications from './notifications'
 
-import CustomTaskListContainer from './components/CustomTaskList/CustomTaskList.Container';
+import CustomerInactivityContainer from './components/CustomerInactivity/CustomerInactivity.Container';
 import reducers, { namespace } from './states';
-import { Actions } from './states/CustomTaskListState';
-import { TaskHelper } from "@twilio/flex-ui";
+
 
 
 const PLUGIN_NAME = 'InactivityPlugin';
@@ -36,8 +35,8 @@ export default class InactivityPlugin extends FlexPlugin {
       flex.DefaultTaskChannels.Chat.addedComponents = [
         {
             target: "TaskListItem",
-            component: <CustomTaskListContainer
-            key="CustomTaskListContainer"
+            component: <CustomerInactivityContainer
+            key="CustomerInactivityContainer"
             />
         }
       ]
@@ -54,7 +53,6 @@ export default class InactivityPlugin extends FlexPlugin {
             }
           }
         }
-        console.log("wrapup payload",payload)
         return original(payload);
       });
 
