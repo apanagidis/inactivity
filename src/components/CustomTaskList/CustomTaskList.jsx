@@ -1,22 +1,86 @@
 import React from 'react';
 import { Notifications } from '@twilio/flex-ui';
 import { CustomNotifications } from '../../notifications';
-import { localStorageGet } from '../../helpers/manager'
-import { useEffect, useState } from "react";
+import { localStorageGet,localStorageSave } from '../../helpers/manager'
+import { useEffect,useRef, useState } from "react";
 import { Actions } from "@twilio/flex-ui";
-import { Actions as StateActions} from '../../states/CustomTaskListState';
-import { TaskHelper } from "@twilio/flex-ui";
-
 
 const CustomTaskList = (props) => {
   const { REACT_APP_TIMER_SEC } = process.env;
   const timerSec = parseInt(REACT_APP_TIMER_SEC);
+  const [seconds, setSeconds] = useState(timerSec);
+  const [isActive, setIsActive] = useState(false);
+
+const useDidMountEffect = (func, deps) => {
+  const didMount = useRef(false);
+  useEffect(() => {
+      if (didMount.current) func();
+      else didMount.current = true;
+  }, deps);
+}
+
+// useDidMountEffect(() => {
+//   let latestMessage = props?.conversation?.messages.slice(-1).pop();
+//   if(latestMessage && !latestMessage.isFromMe){
+//     let activeChats = localStorageGet("activeChats");
+//     const channelSid = props?.task?.attributes?.conversationSid;
+//     let lastMessage = {
+//       channelSid: channelSid,
+//       lastUpdatedbyCustomer: latestMessage?.source?.timestamp,
+//       messageIndex : latestMessage?.index
+//     }
+//     if(activeChats){
+//       const findChannelSid = (element) => element.channelSid == channelSid;
+//       let foundIndex= activeChats.findIndex(findChannelSid);
+
+//       if(foundIndex != -1){
+//         //Only reset the timer when the message in props is newer than the one in localstorage
+//         if(latestMessage &&  latestMessage?.index > activeChats[foundIndex]?.messageIndex){
+//           reset();
+//         }
+//         activeChats[foundIndex] = lastMessage;
+//       }
+//       else{
+//         activeChats.push(lastMessage);
+//       }
+//       localStorageSave("activeChats",activeChats);
+//     }
+//     else{
+//       localStorageSave("activeChats",[lastMessage]);
+//     } 
+//   }
+  
+// }, [props?.conversation?.messages]);    
 
 useEffect(() => {
   let latestMessage = props?.conversation?.messages.slice(-1).pop();
-  console.log("new message",props?.conversation)
   if(latestMessage && !latestMessage.isFromMe){
-    reset();
+    let activeChats = localStorageGet("activeChats");
+    const channelSid = props?.task?.attributes?.conversationSid;
+    let lastMessage = {
+      channelSid: channelSid,
+      lastUpdatedbyCustomer: latestMessage?.source?.timestamp,
+      messageIndex : latestMessage?.index
+    }
+    if(activeChats){
+      const findChannelSid = (element) => element.channelSid == channelSid;
+      let foundIndex= activeChats.findIndex(findChannelSid);
+
+      if(foundIndex != -1){
+        //Only reset the timer when the message in props is newer than the one in localstorage
+        if(latestMessage &&  latestMessage?.index > activeChats[foundIndex]?.messageIndex){
+          reset();
+        }
+        activeChats[foundIndex] = lastMessage;
+      }
+      else{
+        activeChats.push(lastMessage);
+      }
+      localStorageSave("activeChats",activeChats);
+    }
+    else{
+      localStorageSave("activeChats",[lastMessage]);
+    } 
   }
 }, [props?.conversation?.messages])
 
@@ -31,25 +95,22 @@ useEffect(() => {
 
 // Executed when the component is loaded
  useEffect(() => {
-  if(props.chatChannel)
-  {
-    console.log("props", props);
-  }
-  console.log("props", props);
+  let activeChats = localStorageGet("activeChats");
+  const channelSid = props?.task?.attributes?.conversationSid;
+  if(activeChats){
+    const findChannelSid = (element) => element.channelSid == channelSid;
+    let foundIndex= activeChats.findIndex(findChannelSid);
 
-
-  let lastMessage = localStorageGet("last_message");
-  if(lastMessage){
-    let lastMessageDate = new Date(lastMessage.slice(1,-1));
-    let remainingTime = getRemainingTimeSeconds(lastMessageDate);
-    if(remainingTime && remainingTime > 0){
-      updateRemainingTime(Math.round(remainingTime));
+    if(foundIndex != -1){
+      let activeChat = activeChats[foundIndex];
+      let lastMessageDate = new Date(activeChat?.lastUpdatedbyCustomer);
+      let remainingTime = getRemainingTimeSeconds(lastMessageDate);
+      if(remainingTime && remainingTime > 0){
+        setSeconds(Math.round(remainingTime));
+      }
     }
   }
 }, []);
-
-  const [seconds, setSeconds] = useState(timerSec);
-  const [isActive, setIsActive] = useState(false);
 
   function toggle() {
     setIsActive(!isActive);
@@ -85,10 +146,6 @@ useEffect(() => {
   //   }
   // }
 
-  function updateRemainingTime(remainingTimeSeconds) {
-    setSeconds(remainingTimeSeconds);
-  }
-
   function triggerNotification(){
     Notifications.showNotification(CustomNotifications.InactiveNotification,null);
   }
@@ -96,8 +153,6 @@ useEffect(() => {
   useEffect(() => {
     let interval = null;
     if (isActive && seconds > 0 ) {
-    
-
       interval = setInterval(() => {
         setSeconds(seconds => seconds - 1);
       }, 1000);
@@ -105,7 +160,6 @@ useEffect(() => {
       wrapUp();
       clearInterval(interval);
     }
-    
     return () => clearInterval(interval);
   }, [isActive, seconds]);
 
@@ -114,7 +168,6 @@ function showProps(){
 }
   return (
     <div>
-    
       <div className="time">
         {seconds}s
       </div>

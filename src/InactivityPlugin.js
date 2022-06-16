@@ -32,13 +32,6 @@ export default class InactivityPlugin extends FlexPlugin {
     this.registerReducers(manager);
     // Register the notification
     registerCustomNotifications(flex, manager); 
-    const options = { sortOrder: -1 };
-
-    let activeChats = localStorageGet("last_message");
-    if(activeChats){
-      console.log("active Chat", activeChats)
-     this.dispatch(Actions.updateLastMessage(activeChats));
-    }
 
       flex.DefaultTaskChannels.Chat.addedComponents = [
         {
@@ -48,38 +41,6 @@ export default class InactivityPlugin extends FlexPlugin {
             />
         }
       ]
-
-
-
-    // manager.chatClient.on("messageAdded", (chatMessage) => {
-    //   console.log("Inactivity plugin: messageAdded", chatMessage); 
-    //   console.log("store", Flex.Manager.getInstance().store.getState());
-
-    //   // Only refresh the timers if the last message was send by the customer
-    //   if(chatMessage.configuration.userIdentity != chatMessage.state.author){
-    //     let lastMessage = {
-    //       channelSid: chatMessage.conversation.sid,
-    //       lastUpdatedbyCustomer:chatMessage.state.dateUpdated
-    //     }
-    //     let activeChats = localStorageGet("last_message");
-    //     if(activeChats){
-    //       var foundIndex = activeChats.findIndex(x => x.id == chatMessage.conversation.sid);
-    //       if(foundIndex != -1){
-    //         activeChats[foundIndex] = lastMessage;
-    //       }
-    //       else{
-    //         activeChats.push(lastMessage);
-    //       }
-    //       console.log("active chats", activeChats)
-    //       localStorageSave("last_message",activeChats);
-    //       this.dispatch(Actions.updateLastMessage(activeChats));
-    //     }
-    //     else{
-    //       localStorageSave("last_message",[lastMessage]);
-    //       this.dispatch(Actions.updateLastMessage([lastMessage]));
-    //     }
-    //   }
-    // });
 
   }
   dispatch = (f) => Flex.Manager.getInstance().store.dispatch(f);
