@@ -4,13 +4,15 @@ import { CustomNotifications } from '../../notifications';
 import { localStorageGet,localStorageSave } from '../../helpers/manager'
 import { useEffect,useRef, useState } from "react";
 import { Actions } from "@twilio/flex-ui";
-
+import { CustomerInactivityStyles } from './CustomerInactivity.Styles';
+import * as Flex from '@twilio/flex-ui'
 
 const CustomerInactivity = (props) => {
-  const { REACT_APP_TIMER_SEC,REACT_APP_WARNING_SEC,REACT_APP_WARNING_MESSAGE } = process.env;
-  const timerSec = parseInt(REACT_APP_TIMER_SEC);
+  const { customerInactivity } = Flex.Manager.getInstance().serviceConfiguration.ui_attributes;
+  const timerSec = parseInt(customerInactivity.timer_sec);
   const [seconds, setSeconds] = useState(timerSec);
   const [isActive, setIsActive] = useState(false);
+  const [minSec, setMinSec] = useState();
 
 
 useEffect(() => {
@@ -117,14 +119,22 @@ useEffect(() => {
       interval = setInterval(() => {
         setSeconds(seconds => seconds - 1);
       }, 1000);
+
+      let min = Math.floor(seconds / 60);
+      let sec = seconds % 60;
+      // If you want strings with leading zeroes:
+      min = String(min).padStart(2, "0");
+      sec = String(sec).padStart(2, "0");
+      setMinSec(min+":"+sec)
     }
-   if (isActive && seconds === parseInt(REACT_APP_WARNING_SEC)) {
+   if (isActive && seconds === parseInt(customerInactivity.warning_sec)) {
       Actions.invokeAction('SendMessage', {
-        body: REACT_APP_WARNING_MESSAGE,
+        body: customerInactivity.warning_message,
         conversationSid: props?.task?.attributes?.conversationSid
       });
     }
     else if (isActive && seconds === 0) {
+      setMinSec(null);
       moveToWrapUp();
       clearInterval(interval);
     }
@@ -134,11 +144,15 @@ useEffect(() => {
 function showProps(){
   console.log("props", props);
 }
+
+
   return (
+    <CustomerInactivityStyles>
     <div>
-      <div className="time">
-        {seconds}s
+    {minSec &&  <div className="time">
+        chat inactive in {minSec}
       </div>
+    }
       {/* <div className="row">
         <button className={`button button-primary button-primary-${isActive ? 'active' : 'inactive'}`} onClick={toggle}>
           {isActive ? 'Pause' : 'Start'}
@@ -151,6 +165,7 @@ function showProps(){
         </button>
       </div> */}
     </div>
+    </CustomerInactivityStyles>
   );
 };
 

@@ -41,8 +41,9 @@ export default class InactivityPlugin extends FlexPlugin {
         }
       ]
 
-      flex.Actions.replaceAction("WrapupTask", (payload, original) => {
-        if(payload.reason === "Completed manually from button"){
+
+    flex.Actions.addListener("afterWrapupTask", (payload) => {
+      if(payload.reason === "Completed manually from button"){
           let channelSid = payload.task?.attributes?.conversationSid
           let activeChats = localStorageGet("activeChats");
           if(activeChats){
@@ -52,9 +53,9 @@ export default class InactivityPlugin extends FlexPlugin {
               localStorageSave("activeChats",activeChats);
             }
           }
-        }
-        return original(payload);
-      });
+       }
+   });
+  
 
   }
   dispatch = (f) => Flex.Manager.getInstance().store.dispatch(f);

@@ -38,6 +38,57 @@ This plugin uses the Twilio CLI for deployment and development.
 - Install the Twilio Serverless plugin.
   - Instructions: https://www.twilio.com/docs/twilio-cli/plugins#available-plugins
 
+### Configuration
+
+This plugin relies on custom configuration being applied to your underlying [Flex Configuration](https://www.twilio.com/docs/flex/developer/ui/configuration#modifying-configuration-for-flextwiliocom)
+
+for each activity sid you want to add an entry to the following ui_attributes element
+
+```
+"agentActivityRules": {
+	"<ACTIVITY_SID>" :  {
+		"requiredSkill" : "skill_name",
+		"sortOrder": order
+	}
+}
+```
+
+As an example:
+
+```
+"agentActivityRules": {
+            "WA845ba1c86cb933b0806deabb39784c66": {
+                "requiredSkill": "testing",
+                "sortOrder": 0
+            },
+            "WA6af363ff8880786f37c453bfa297dca1": {
+                "requiredSkill": null,
+                "sortOrder": 1
+            },
+            "WAeee0165b5d13a7d246401dc7771c04f0": {
+                "requiredSkill": null,
+                "sortOrder":2
+            },
+}
+```
+
+In order to do this you need to first get the flex configuration, you can do that by:
+
+curl -X GET 'https://flex-api.twilio.com/v1/Configuration' \
+-u $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN
+Copy the ui_attributes portion from the response you get and make the POST request with the updates to the ui_attributes
+
+curl -X POST 'https://flex-api.twilio.com/v1/Configuration' \
+-u $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN \
+-H 'Content-Type: application/json' \
+-d '{
+    "account_sid":"Add your flex account sid here",
+    "ui_attributes": {
+        "Add the agent activities rule as shown in the section above",
+    ...old properties continued
+    }
+}'
+
 ### Development
 
 In order to develop locally, you can use the Twilio CLI to run the plugin locally. Using your commandline run the following from the root dirctory of the plugin.
