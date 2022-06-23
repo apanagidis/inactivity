@@ -40,21 +40,6 @@ export default class InactivityPlugin extends FlexPlugin {
             />
         }
       ]
-
-
-    flex.Actions.addListener("afterWrapupTask", (payload) => {
-      if(payload.reason === "Completed manually from button"){
-          let channelSid = payload.task?.attributes?.conversationSid
-          let activeChats = localStorageGet("activeChats");
-          if(activeChats){
-            var foundIndex = activeChats.findIndex((element) => element.channelSid == channelSid);
-            if(foundIndex != -1){
-              activeChats.splice(foundIndex, 1);
-              localStorageSave("activeChats",activeChats);
-            }
-          }
-       }
-   });
   
 
   }

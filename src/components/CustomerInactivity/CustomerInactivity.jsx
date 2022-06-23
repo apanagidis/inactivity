@@ -16,35 +16,25 @@ const CustomerInactivity = (props) => {
 
 
 useEffect(() => {
-  let latestMessage = props?.conversation?.messages.slice(-1).pop();
-  if(latestMessage && !latestMessage.isFromMe){
-    let activeChats = localStorageGet("activeChats");
-    const channelSid = props?.task?.attributes?.conversationSid;
-    let lastMessage = {
-      channelSid: channelSid,
-      lastUpdatedbyCustomer: latestMessage?.source?.timestamp,
-      messageIndex : latestMessage?.index
-    }
-    if(activeChats){
-      let foundIndex= activeChats.findIndex((element) => element.channelSid == channelSid);
-      if(foundIndex != -1){
-        //Only reset the timer when the message in props is newer than the one in localstorage
-        if(latestMessage &&  latestMessage?.index > activeChats[foundIndex]?.messageIndex){
-          reset();
-        }
-        activeChats[foundIndex] = lastMessage;
+  // find the latest message sent by the customer
+  if(props?.conversation?.messages && props?.conversation?.messages.length > 0){
+    let latestMessage = props?.conversation?.messages.reduce(function(previousValue, currentValue) {
+      if(currentValue.isFromMe) {
+        return previousValue;
       }
-      else{
-        activeChats.push(lastMessage);
+      if(previousValue && previousValue.index > currentValue.index)
+      {
+        return previousValue
       }
-      if(props?.task?.status !== "wrapping")
-        localStorageSave("activeChats",activeChats);
-      
+      return currentValue
+    },null);
+  
+    if(latestMessage && !latestMessage.isFromMe){
+      let remainingTime = getRemainingTimeSeconds(latestMessage.source.timestamp);
+      if(remainingTime && remainingTime > 0){
+        setSeconds(Math.round(remainingTime));
+      }
     }
-    else{
-      if(props?.task?.status !== "wrapping")
-        localStorageSave("activeChats",[lastMessage]);
-    } 
   }
 }, [props?.conversation?.messages])
 
@@ -56,24 +46,6 @@ useEffect(() => {
     setIsActive(false);
   }
 }, [props?.task?.status])
-
-// Executed when the component is loaded
- useEffect(() => {
-  let activeChats = localStorageGet("activeChats");
-  const channelSid = props?.task?.attributes?.conversationSid;
-  if(activeChats){
-    let foundIndex= activeChats.findIndex((element) => element.channelSid == channelSid);
-    if(foundIndex != -1){
-      let activeChat = activeChats[foundIndex];
-      let lastMessageDate = new Date(activeChat?.lastUpdatedbyCustomer);
-      let remainingTime = getRemainingTimeSeconds(lastMessageDate);
-      if(remainingTime && remainingTime > 0){
-        setSeconds(Math.round(remainingTime));
-      }
-    }
-  }
-
-}, []);
 
   function toggle() {
     setIsActive(!isActive);
@@ -94,19 +66,6 @@ useEffect(() => {
       triggerNotification();
       Actions.invokeAction("WrapupTask", { sid: props.task.sid });
     }   
-    clearChannelFromLocalStorage();
-  }
-
-  function clearChannelFromLocalStorage(){
-    let channelSid = props?.task?.attributes?.conversationSid
-    let activeChats = localStorageGet("activeChats");
-    if(activeChats){
-      var foundIndex = activeChats.findIndex((element) => element.channelSid == channelSid);
-      if(foundIndex != -1){
-        activeChats.splice(foundIndex, 1);
-        localStorageSave("activeChats",activeChats);
-      }
-    }
   }
 
   function triggerNotification(){
