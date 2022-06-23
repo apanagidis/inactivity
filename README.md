@@ -64,7 +64,7 @@ curl -X POST 'https://flex-api.twilio.com/v1/Configuration' \
 -d '{
     "account_sid":"Add your flex account sid here",
     "ui_attributes": {
-        "Add the agent activities rule as shown in the section above",
+        "Add the customerInactivity as shown in the section above",
     ...old properties continued
     }
 }'
