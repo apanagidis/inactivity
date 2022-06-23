@@ -42,34 +42,14 @@ This plugin uses the Twilio CLI for deployment and development.
 
 This plugin relies on custom configuration being applied to your underlying [Flex Configuration](https://www.twilio.com/docs/flex/developer/ui/configuration#modifying-configuration-for-flextwiliocom)
 
-for each activity sid you want to add an entry to the following ui_attributes element
-
+Add the following to the ui_attributes element
+Example:
 ```
-"agentActivityRules": {
-	"<ACTIVITY_SID>" :  {
-		"requiredSkill" : "skill_name",
-		"sortOrder": order
-	}
-}
-```
-
-As an example:
-
-```
-"agentActivityRules": {
-            "WA845ba1c86cb933b0806deabb39784c66": {
-                "requiredSkill": "testing",
-                "sortOrder": 0
-            },
-            "WA6af363ff8880786f37c453bfa297dca1": {
-                "requiredSkill": null,
-                "sortOrder": 1
-            },
-            "WAeee0165b5d13a7d246401dc7771c04f0": {
-                "requiredSkill": null,
-                "sortOrder":2
-            },
-}
+ "customerInactivity": {
+      "timer_sec":35,
+      "warning_sec":15,
+      "warning_message":"We have not heard from you for a while, we will be closing the chat shortly"
+  },
 ```
 
 In order to do this you need to first get the flex configuration, you can do that by:

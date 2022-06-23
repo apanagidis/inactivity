@@ -1,8 +1,7 @@
 import React from 'react';
 import { Notifications } from '@twilio/flex-ui';
 import { CustomNotifications } from '../../notifications';
-import { localStorageGet,localStorageSave } from '../../helpers/manager'
-import { useEffect,useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Actions } from "@twilio/flex-ui";
 import { CustomerInactivityStyles } from './CustomerInactivity.Styles';
 import * as Flex from '@twilio/flex-ui'
